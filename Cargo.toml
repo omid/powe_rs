@@ -1,0 +1,22 @@
+[package]
+name = "powe_rs"
+version = "0.1.0"
+edition = "2024"
+description = "A simple web server to shutdown or restart the host machine"
+keywords = ["web", "server", "shutdown", "restart"]
+categories = ["server", "utility"]
+homepage = "https://github.com/omid/powe_rs"
+repository = "https://github.com/omid/powe_rs"
+readme = "README.md"
+authors = ["Omid Rad"]
+license-file = "LICENSE"
+
+[dependencies]
+
+[profile.release]
+opt-level = "s"
+lto = true
+panic = "abort"
+overflow-checks = false
+codegen-units = 1
+strip = true
