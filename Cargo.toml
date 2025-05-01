@@ -9,7 +9,7 @@ homepage = "https://github.com/omid/powe_rs"
 repository = "https://github.com/omid/powe_rs"
 readme = "README.md"
 authors = ["Omid Rad"]
-license-file = "LICENSE"
+license = "MIT"
 
 [dependencies]
 
