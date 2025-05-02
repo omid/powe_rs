@@ -4,6 +4,12 @@ A simple web UI to shutdown or restart your Linux machine, with systemd integrat
 
 ---
 
+<p align="center">
+  <img src="assets/screen.apng" alt="Web UI Screenshot" width="400" />
+</p>
+
+---
+
 **Security Warning:**
 
 - Do **not** expose this script to the internet or any public network. It is intended for use on trusted, private networks only.
