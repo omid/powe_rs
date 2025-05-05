@@ -6,6 +6,7 @@ use systemctl::SystemCtl;
 const HTML: &str = include_str!("index.html");
 const SERVICE_NAME: &str = "powe_rs.service";
 const BINARY_PATH: &str = "/usr/local/bin/powe_rs";
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn serve(ip: &str, port: u16) {
     let bind_addr = if ip.contains(":") {
@@ -144,6 +145,9 @@ fn main() {
 fn print_help() {
     println!(
         r#"powe_rs - Simple Power Control Web UI
+Version: {VERSION}
+powe_rs is a simple web server that allows you to power off or reboot your system via browser.
+
 USAGE:
   powe_rs serve [-l <IP:PORT>|<PORT>]
   powe_rs install [-l <IP:PORT>|<PORT>]
