@@ -23,15 +23,30 @@ jobs:
           override: true
       - name: Add x86_64 target
         run: rustup target add x86_64-unknown-linux-gnu
-      - name: Add aarch64 target
-        run: rustup target add aarch64-unknown-linux-gnu
+      - name: Cache cross binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cross
+          key: ${{ runner.os }}-cross-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install cross
+        run: |
+          if ! command -v cross &> /dev/null; then
+            cargo install cross --locked
+          fi
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.docker-cross
+          key: ${{ runner.os }}-docker-cross-${{ hashFiles('**/Cargo.lock') }}
       - name: Build x86_64
         run: cargo build --release --target x86_64-unknown-linux-gnu
-      - name: Build aarch64
-        run: cargo build --release --target aarch64-unknown-linux-gnu
+      - name: Build aarch64 (with cross)
+        env:
+          CROSS_HOME: /tmp/.docker-cross
+        run: cross build --release --target aarch64-unknown-linux-gnu
       - name: Package Binaries
         run: |
-          mkdir dist
+          mkdir -p dist
           cp target/x86_64-unknown-linux-gnu/release/powe_rs dist/powe_rs-x86_64-unknown-linux-gnu
           cp target/aarch64-unknown-linux-gnu/release/powe_rs dist/powe_rs-aarch64-unknown-linux-gnu
       - name: Upload Artifacts
