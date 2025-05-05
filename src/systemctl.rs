@@ -72,14 +72,15 @@ WantedBy=multi-user.target
     fn do_power_action(action: &str, when: Option<&str>, log_label: &str) {
         let mut cmd = Self::systemctl_cmd();
         cmd.arg(action);
-        if let Some(when_val) = when {
+        let when = when.unwrap_or_default();
+        if !when.is_empty() {
             cmd.arg("--when");
-            cmd.arg(when_val);
+            cmd.arg(when);
         }
-        if when == Some("cancel") {
-            SystemCtl::log(&format!("cancel scheduled {}", log_label));
-        } else {
-            SystemCtl::log(log_label);
+        match when {
+            "cancel" => SystemCtl::log(&format!("cancel scheduled {log_label}")),
+            "" => SystemCtl::log(log_label),
+            w => SystemCtl::log(&format!("{log_label} scheduled at {w}")),
         }
         Self::run_cmd(cmd);
     }
