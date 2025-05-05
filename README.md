@@ -5,7 +5,7 @@ A simple web UI to power off or reboot your Linux machine, with systemd integrat
 ---
 
 <p align="center">
-  <video src="assets/screen.mp4" alt="Web UI Screenshot" width="400" loop autoplay muted></video>
+  <img src="assets/screen.apng" alt="Web UI Screenshot" width="400" />
 </p>
 
 ---
@@ -19,7 +19,7 @@ A simple web UI to power off or reboot your Linux machine, with systemd integrat
 
 ## Features
 
-- Minimal HTTP server with a web UI for power off and reboot the host
+- Minimal HTTP server with a web UI for power off and restart the host
 - Confirmation modal for actions
 - Systemd user service install option
 - Customizable ip and port
