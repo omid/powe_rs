@@ -26,11 +26,13 @@ A simple web UI to power off or reboot your Linux machine in 5-4-3-2-1 seconds, 
 
 ## Installation
 
-### Pre-built packages
+Choose one of these ways
+
+### 1. Pre-built packages (Recommended / Probably Easier and Faster)
 
 Go to https://github.com/omid/powe_rs/releases/latest and choose the amd64 or aarch64 version, based on your CPU architecture, and download the file.
 
-### Build locally
+### 2. Build locally
 
 Ensure you have Git and Cargo installed.
 
@@ -42,7 +44,7 @@ cargo build --release
 
 ## Usage
 
-### Setup the service
+### Install the service
 
 Just run this:
 
@@ -78,7 +80,7 @@ You can set the `DRY=true` environment variable to test the script without actua
 DRY=true powe_rs serve
 ```
 
-### Remove the service
+### Uninstall the service
 
 To remove the systemd service:
 
@@ -86,7 +88,7 @@ To remove the systemd service:
 sudo powe_rs uninstall
 ```
 
-To also remove the installed powe_rs binary:
+To also remove the installed binary:
 
 ```sh
 sudo powe_rs uninstall -a
