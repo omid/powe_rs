@@ -5,7 +5,7 @@ A simple web UI to power off or reboot your Linux machine in 5-4-3-2-1 seconds, 
 ---
 
 <p align="center">
-  <img src="assets/screen.apng" alt="Web UI Screenshot" width="400" />
+  <img src="https://github.com/omid/powe_rs/raw/refs/heads/master/assets/screen.apng" alt="Web UI Screenshot" width="400" />
 </p>
 
 ---
