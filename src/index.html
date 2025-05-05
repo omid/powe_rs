@@ -38,12 +38,12 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        button.shutdown {
+        button.poweroff {
             background: #e74c3c;
             color: #fff;
         }
 
-        button.shutdown:hover {
+        button.poweroff:hover {
             background: #c0392b;
         }
 
@@ -122,7 +122,7 @@
 <body>
     <div class="container">
         <h1>Power Control</h1>
-        <button class="shutdown" onclick="showModal('shutdown')">Shutdown</button>
+        <button class="poweroff" onclick="showModal('poweroff')">Power off</button>
         <button class="restart" onclick="showModal('restart')">Restart</button>
     </div>
     <div id="modal" style="display:none">

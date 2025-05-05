@@ -2,7 +2,6 @@ use std::{
     env, fs,
     io::{Read, Write},
     net::TcpListener,
-    process::Command,
     thread,
 };
 
@@ -10,7 +9,7 @@ mod systemctl;
 use systemctl::SystemCtl;
 
 const HTML: &str = include_str!("index.html");
-const SERVICE_PATH: &str = "/etc/systemd/system/powe_rs.service";
+const SERVICE_NAME: &str = "powe_rs.service";
 const BINARY_PATH: &str = "/usr/local/bin/powe_rs";
 
 fn serve(ip: &str, port: u16) {
@@ -28,13 +27,12 @@ fn serve(ip: &str, port: u16) {
             let mut buffer = [0; 1024];
             let _ = stream.read(&mut buffer);
             let request = String::from_utf8_lossy(&buffer);
-            let response = if request.contains("POST /shutdown") {
-                println!("User asked to shutdown via web ui of powe_rs");
-                Command::new("shutdown").arg("-h").arg("now").spawn().ok();
+
+            let response = if request.contains("POST /poweroff") {
+                SystemCtl::poweroff(None);
                 "HTTP/1.1 204 NO CONTENT".to_string()
             } else if request.contains("POST /restart") {
-                println!("User asked to restart via web ui of powe_rs");
-                Command::new("reboot").spawn().ok();
+                SystemCtl::reboot();
                 "HTTP/1.1 204 NO CONTENT".to_string()
             } else {
                 format!("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{}", HTML)
@@ -56,23 +54,7 @@ fn install_service(ip: &str, port: u16) {
     require_root_or_exit("install");
     let exe_path = std::env::current_exe().unwrap();
     std::fs::copy(&exe_path, BINARY_PATH).expect("Failed to copy binary to /usr/local/bin");
-    let service = format!(
-        r"[Unit]
-Description=Power Control Web UI
-After=network.target
-
-[Service]
-ExecStart={} serve -l {}:{}
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-",
-        BINARY_PATH, ip, port,
-    );
-    fs::write(SERVICE_PATH, service).expect("Failed to write service file");
-    SystemCtl::daemon_reload();
-    let sysctl = SystemCtl::new("powe_rs.service");
+    let sysctl = SystemCtl::install_service(SERVICE_NAME, BINARY_PATH, ip, port);
     sysctl.enable();
     sysctl.stop();
     sysctl.start();
@@ -81,11 +63,7 @@ WantedBy=multi-user.target
 
 fn uninstall_service(remove_binary: bool) {
     require_root_or_exit("uninstall");
-    let sysctl = SystemCtl::new("powe_rs.service");
-    sysctl.stop();
-    sysctl.disable();
-    fs::remove_file(SERVICE_PATH).ok();
-    SystemCtl::daemon_reload();
+    SystemCtl::uninstall_service(SERVICE_NAME);
     if remove_binary {
         fs::remove_file(BINARY_PATH).ok();
         println!("Service and binary removed.");

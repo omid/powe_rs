@@ -1,6 +1,6 @@
 # powe_rs
 
-A simple web UI to shutdown or restart your Linux machine, with systemd integration.
+A simple web UI to power off or restart your Linux machine, with systemd integration.
 
 ---
 
@@ -13,13 +13,13 @@ A simple web UI to shutdown or restart your Linux machine, with systemd integrat
 **Security Warning:**
 
 - Do **not** expose this script to the internet or any public network. It is intended for use on trusted, private networks only.
-- This tool can shutdown or restart your host. Use with care and consider restricting access (e.g., firewall, VPN).
+- This tool can power off or restart your host. Use with care and consider restricting access (e.g., firewall, VPN).
 
 ---
 
 ## Features
 
-- Minimal HTTP server with a web UI for shutdown and restart the host
+- Minimal HTTP server with a web UI for power off and restart the host
 - Confirmation modal for actions
 - Systemd user service install option
 - Customizable ip and port
