@@ -1,6 +1,6 @@
 # powe_rs
 
-A simple web UI to power off or reboot your Linux machine, with systemd integration.
+A simple web UI to power off or reboot your Linux machine in 5-4-3-2-1 seconds, by default on port 54321 — because, obviously.
 
 ---
 
@@ -24,15 +24,25 @@ A simple web UI to power off or reboot your Linux machine, with systemd integrat
 - Systemd user service install option
 - Customizable ip and port
 
-## Usage
+## Installation
+
+### Pre-built packages
+
+Go to https://github.com/omid/powe_rs/releases/latest and choose the amd64 or aarch64 version, based on your CPU architecture, and download the file.
 
 ### Build locally
+
+Ensure you have Git and Cargo installed.
+
+Then run the following command:
 
 ```sh
 cargo build --release
 ```
 
-### Install as a systemd service
+## Usage
+
+### Setup the service
 
 Just run this:
 
@@ -40,7 +50,7 @@ Just run this:
 sudo powe_rs install
 ```
 
-It will install it on the default port, which is 54321. Then you can open it http://127.0.0.1:54321 or on the machine's IP.
+It will install the service on the default port, 54321. Then you can open http://127.0.0.1:54321 or use your machine's IP address.
 
 Or if you want to listen to a custom ip and/or port, you can pass them like below:
 
@@ -49,7 +59,7 @@ sudo powe_rs install -l 127.0.0.1:8080
 sudo powe_rs install -l 8080
 ```
 
-The command above will install a binary on your system also. It means after that you can run the command manually like below:
+The command above will also install the binary on your system. After that, you can run the command manually as shown below:
 
 ```sh
 powe_rs serve
@@ -62,13 +72,13 @@ powe_rs serve -l 127.0.0.1:8080
 powe_rs serve -l 8080
 ```
 
-You can set `DRY=true` env var to test the script without running the commands.
+You can set the `DRY=true` environment variable to test the script without actually running the commands.
 
 ```sh
 DRY=true powe_rs serve
 ```
 
-## Uninstall
+### Remove the service
 
 To remove the systemd service:
 
@@ -82,7 +92,7 @@ To also remove the installed powe_rs binary:
 sudo powe_rs uninstall -a
 ```
 
-## Help
+### Help
 
 You can always see the help message with:
 
@@ -92,7 +102,7 @@ powe_rs -h
 
 **Note:**
 
-This project was written about 80-90% by AI, with the main motivation being my personal need to easily and remotely turn off my Raspberry Pi.
+This project was written about 80-90% by AI. The main motivation was my personal need to easily and remotely turn off my Raspberry Pi.
 
 ## License
 
