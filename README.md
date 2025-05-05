@@ -19,7 +19,7 @@ A simple web UI to power off or reboot your Linux machine in 5-4-3-2-1 seconds, 
 
 ## Features
 
-- Minimal HTTP server with a web UI for power off and restart the host
+- Minimal HTTP server with a web UI for power off and reboot the host
 - Confirmation modal for actions
 - Systemd user service install option
 - Customizable ip and port
