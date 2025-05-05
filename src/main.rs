@@ -60,11 +60,10 @@ fn require_root_or_exit(cmd: &str) {
 
 fn install_service(ip: &str, port: u16) {
     require_root_or_exit("install");
-    let exe_path = std::env::current_exe().unwrap();
-    std::fs::copy(&exe_path, BINARY_PATH).expect("Failed to copy binary to /usr/local/bin");
     let sysctl = SystemCtl::install_service(SERVICE_NAME, BINARY_PATH, ip, port);
     sysctl.enable();
     sysctl.stop();
+    std::fs::copy(&std::env::current_exe().unwrap(), BINARY_PATH).expect("Failed to copy binary to /usr/local/bin");
     sysctl.start();
     println!("Service installed and started on http://{}:{}", ip, port);
 }
