@@ -47,12 +47,12 @@
             background: #c0392b;
         }
 
-        button.restart {
+        button.reboot {
             background: #3498db;
             color: #fff;
         }
 
-        button.restart:hover {
+        button.reboot:hover {
             background: #217dbb;
         }
 
@@ -79,7 +79,9 @@
             border-radius: 12px;
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
             text-align: center;
-            min-width: 320px;
+            min-width: 520px;
+            width: 520px;
+            max-width: 90vw;
         }
 
         #modal-content p {
@@ -99,22 +101,40 @@
         }
 
         #modal-content .yes {
-            background: #27ae60;
+            background: #e74c3c;
             color: #fff;
         }
 
         #modal-content .yes:hover {
-            background: #219150;
+            background: #c0392b;
         }
 
         #modal-content .no {
-            background: #bdc3c7;
-            color: #222;
+            background: #3498db;
+            color: #fff;
         }
 
         #modal-content .no:hover {
-            background: #95a5a6;
+            background: #217dbb;
             color: #fff;
+        }
+
+        #future-time {
+            padding: 0.5em 1em;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1.1em;
+            background: #f8f9fa;
+            color: #222;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            transition: border 0.2s, box-shadow 0.2s;
+            margin-top: 0.5em;
+        }
+
+        #future-time:focus {
+            border: 1.5px solid #3498db;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.10);
         }
     </style>
 </head>
@@ -123,29 +143,93 @@
     <div class="container">
         <h1>Power Control</h1>
         <button class="poweroff" onclick="showModal('poweroff')">Power off</button>
-        <button class="restart" onclick="showModal('restart')">Restart</button>
+        <button class="reboot" onclick="showModal('reboot')">Reboot</button>
     </div>
-    <div id="modal" style="display:none">
+    <div id="modal" style="display:none" onclick="if(event.target===this)hideModal()">
         <div id="modal-content">
             <p id="modal-text"></p>
+            <div id="time-input" style="margin-top:1em; margin-bottom:3em;">
+                <form id="power-options">
+                    <div style="text-align:left; margin-bottom:1em;">
+                        <label><input type="radio" name="power-mode" value="now" checked> <span id="now-label">Power
+                                off now</span></label><br>
+                        <label><input type="radio" name="power-mode" value="future"> <span id="future-label">Power
+                                off in future</span></label><br>
+                        <label><input type="radio" name="power-mode" value="cancel"> <span id="cancel-label">Cancel
+                                scheduled power off</span></label>
+                    </div>
+                    <div id="future-time-container" style="display:none;">
+                        <label for="future-time" id="future-time-label">Schedule server time:</label>
+                        <input type="datetime-local" id="future-time" name="future-time">
+                    </div>
+                </form>
+            </div>
             <button class="modal-btn yes" onclick="doAction()">Yes</button>
             <button class="modal-btn no" onclick="hideModal()">No</button>
         </div>
     </div>
     <script>
         let action = '';
+        const labels = {
+            poweroff: 'power off',
+            reboot: 'reboot',
+        };
+        function updateModalQuestion() {
+            const mode = document.querySelector('input[name="power-mode"]:checked').value;
+            const label = labels[action];
+            let text = '';
+            if (mode === 'now') {
+                text = `Are you sure you want to ${label}?`;
+            } else if (mode === 'future') {
+                text = `Are you sure you want to schedule a ${label}?`;
+            } else if (mode === 'cancel') {
+                text = `Are you sure you want to cancel scheduled ${label}?`;
+            }
+            document.getElementById('modal-text').innerText = text;
+        }
         function showModal(act) {
             action = act;
-            document.getElementById('modal-text').innerText = `Are you sure you want to ${act}?`;
+            const label = labels[act];
+            document.getElementById('modal-text').innerText = `Are you sure you want to ${label}?`;
             document.getElementById('modal').style.display = 'flex';
+            document.getElementById('now-label').innerText = `${sentenceCase(label)} now`;
+            document.getElementById('future-label').innerText = `${sentenceCase(label)} in future`;
+            document.getElementById('cancel-label').innerText = `Cancel scheduled ${label}`;
+            // Reset radio to default
+            document.querySelector('input[name="power-mode"][value="now"]').checked = true;
+            document.getElementById('future-time-container').style.display = 'none';
+            document.getElementById('future-time').value = '';
+            updateModalQuestion();
+        }
+        // Add event listeners for radio buttons
+        document.addEventListener('DOMContentLoaded', function () {
+            const radios = document.querySelectorAll('input[name="power-mode"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    document.getElementById('future-time-container').style.display = this.value === 'future' ? 'block' : 'none';
+                    updateModalQuestion();
+                });
+            });
+        });
+        function doAction() {
+            let opts = { method: 'POST' };
+            const mode = document.querySelector('input[name="power-mode"]:checked').value;
+            if (mode === 'future') {
+                const timeVal = document.getElementById('future-time').value;
+                if (timeVal) {
+                    opts.body = timeVal;
+                }
+            } else if (mode === 'cancel') {
+                opts.body = 'cancel';
+            }
+            fetch('/' + action, opts).then(() => { window.location.reload(); });
+
+            hideModal();
         }
         function hideModal() {
             document.getElementById('modal').style.display = 'none';
         }
-        function doAction() {
-            fetch('/' + action, { method: 'POST' }).then(() => { window.location.reload(); });
-            hideModal();
-        };
+        const sentenceCase = (string) => string.charAt(0).toUpperCase() + string.slice(1);
     </script>
 </body>
 

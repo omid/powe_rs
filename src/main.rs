@@ -1,9 +1,4 @@
-use std::{
-    env, fs,
-    io::{Read, Write},
-    net::TcpListener,
-    thread,
-};
+use std::io::{Read as _, Write as _};
 
 mod systemctl;
 use systemctl::SystemCtl;
@@ -20,19 +15,21 @@ fn serve(ip: &str, port: u16) {
         // IPv4
         format!("{}:{}", ip, port)
     };
-    let listener = TcpListener::bind(&bind_addr).expect("Failed to bind address");
+    let listener = std::net::TcpListener::bind(&bind_addr).expect("Failed to bind address");
     println!("Listening on http://{}:{}", ip, port);
     for mut stream in listener.incoming().flatten() {
-        thread::spawn(move || {
+        std::thread::spawn(move || {
             let mut buffer = [0; 1024];
             let _ = stream.read(&mut buffer);
             let request = String::from_utf8_lossy(&buffer);
 
             let response = if request.contains("POST /poweroff") {
-                SystemCtl::poweroff(None);
+                let when = extract_body(&request);
+                SystemCtl::poweroff(when.as_deref());
                 "HTTP/1.1 204 NO CONTENT".to_string()
-            } else if request.contains("POST /restart") {
-                SystemCtl::reboot();
+            } else if request.contains("POST /reboot") {
+                let when = extract_body(&request);
+                SystemCtl::reboot(when.as_deref());
                 "HTTP/1.1 204 NO CONTENT".to_string()
             } else {
                 format!("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{}", HTML)
@@ -42,8 +39,19 @@ fn serve(ip: &str, port: u16) {
     }
 }
 
+fn extract_body(request: &str) -> Option<String> {
+    if let Some(idx) = request.find("\r\n\r\n") {
+        let body = &request[idx + 4..];
+        let val = body.trim_matches(|c: char| c == '\0' || c.is_whitespace());
+        if !val.is_empty() {
+            return Some(val.to_string());
+        }
+    }
+    None
+}
+
 fn require_root_or_exit(cmd: &str) {
-    let user = env::var("USER").unwrap_or_default();
+    let user = std::env::var("USER").unwrap_or_default();
     if user != "root" {
         eprintln!("Error: {} must be run as root.", cmd);
         std::process::exit(1);
@@ -65,7 +73,7 @@ fn uninstall_service(remove_binary: bool) {
     require_root_or_exit("uninstall");
     SystemCtl::uninstall_service(SERVICE_NAME);
     if remove_binary {
-        fs::remove_file(BINARY_PATH).ok();
+        std::fs::remove_file(BINARY_PATH).ok();
         println!("Service and binary removed.");
     } else {
         println!("Service removed.");
@@ -110,7 +118,7 @@ fn parse_listen(args: &[String]) -> (String, u16) {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 || args.iter().any(|x| x == "--help" || x == "-h") {
         print_help();
         return;

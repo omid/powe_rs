@@ -1,11 +1,11 @@
 # powe_rs
 
-A simple web UI to power off or restart your Linux machine, with systemd integration.
+A simple web UI to power off or reboot your Linux machine, with systemd integration.
 
 ---
 
 <p align="center">
-  <img src="assets/screen.apng" alt="Web UI Screenshot" width="400" />
+  <video src="assets/screen.mp4" alt="Web UI Screenshot" width="400" loop autoplay muted></video>
 </p>
 
 ---
@@ -13,13 +13,13 @@ A simple web UI to power off or restart your Linux machine, with systemd integra
 **Security Warning:**
 
 - Do **not** expose this script to the internet or any public network. It is intended for use on trusted, private networks only.
-- This tool can power off or restart your host. Use with care and consider restricting access (e.g., firewall, VPN).
+- This tool can power off or reboot your host. Use with care and consider restricting access (e.g., firewall, VPN).
 
 ---
 
 ## Features
 
-- Minimal HTTP server with a web UI for power off and restart the host
+- Minimal HTTP server with a web UI for power off and reboot the host
 - Confirmation modal for actions
 - Systemd user service install option
 - Customizable ip and port
@@ -34,15 +34,38 @@ cargo build --release
 
 ### Install as a systemd service
 
+Just run this:
+
 ```sh
 sudo powe_rs install
 ```
+
+It will install it on the default port, which is 54321. Then you can open it http://127.0.0.1:54321 or on the machine's IP.
 
 Or if you want to listen to a custom ip and/or port, you can pass them like below:
 
 ```sh
 sudo powe_rs install -l 127.0.0.1:8080
 sudo powe_rs install -l 8080
+```
+
+The command above will install a binary on your system also. It means after that you can run the command manually like below:
+
+```sh
+powe_rs serve
+```
+
+Or
+
+```sh
+powe_rs serve -l 127.0.0.1:8080
+powe_rs serve -l 8080
+```
+
+You can set `DRY=true` env var to test the script without running the commands.
+
+```sh
+DRY=true powe_rs serve
 ```
 
 ## Uninstall

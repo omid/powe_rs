@@ -1,5 +1,3 @@
-use std::fs;
-
 pub struct SystemCtl<'a> {
     service: &'a str,
 }
@@ -11,7 +9,6 @@ impl<'a> SystemCtl<'a> {
         Self { service }
     }
     pub fn install_service(service: &'a str, path: &str, ip: &str, port: u16) -> Self {
-        let service_path = format!("{SERVICE_PATH}/{service}");
         let service_content = format!(
             r"[Unit]
 Description=Power Control Web UI
@@ -26,7 +23,7 @@ WantedBy=multi-user.target
 ",
             path, ip, port,
         );
-        std::fs::write(&service_path, service_content).expect("Failed to write service file");
+        std::fs::write(format!("{SERVICE_PATH}/{service}"), service_content).expect("Failed to write service file");
         SystemCtl::daemon_reload();
         Self::new(service)
     }
@@ -35,38 +32,66 @@ WantedBy=multi-user.target
         let sysctl = SystemCtl::new(service);
         sysctl.stop();
         sysctl.disable();
-        fs::remove_file(&format!("{SERVICE_PATH}/{service}")).ok();
+        std::fs::remove_file(format!("{SERVICE_PATH}/{service}")).ok();
         SystemCtl::daemon_reload();
     }
 
     pub fn daemon_reload() {
-        std::process::Command::new("systemctl").args(["daemon-reload"]).output().ok();
+        let mut cmd = Self::systemctl_cmd();
+        cmd.arg("daemon-reload");
+        Self::run_cmd(cmd);
     }
     pub fn enable(&self) {
-        std::process::Command::new("systemctl").args(["enable", self.service]).output().ok();
+        let mut cmd = Self::systemctl_cmd();
+        cmd.args(["enable", self.service]);
+        Self::run_cmd(cmd);
     }
     pub fn start(&self) {
-        std::process::Command::new("systemctl").args(["start", self.service]).output().ok();
+        let mut cmd = Self::systemctl_cmd();
+        cmd.args(["start", self.service]);
+        Self::run_cmd(cmd);
     }
     pub fn stop(&self) {
-        std::process::Command::new("systemctl").args(["stop", self.service]).output().ok();
+        let mut cmd = Self::systemctl_cmd();
+        cmd.args(["stop", self.service]);
+        Self::run_cmd(cmd);
     }
     pub fn disable(&self) {
-        std::process::Command::new("systemctl").args(["disable", self.service]).output().ok();
+        let mut cmd = Self::systemctl_cmd();
+        cmd.args(["disable", self.service]);
+        Self::run_cmd(cmd);
     }
+
     pub fn poweroff(when: Option<&str>) {
-        SystemCtl::log("power off");
-        let mut cmd = std::process::Command::new("systemctl");
-        cmd.arg("poweroff");
+        Self::do_power_action("poweroff", when, "power off");
+    }
+    pub fn reboot(when: Option<&str>) {
+        Self::do_power_action("reboot", when, "reboot");
+    }
+
+    fn do_power_action(action: &str, when: Option<&str>, log_label: &str) {
+        let mut cmd = Self::systemctl_cmd();
+        cmd.arg(action);
         if let Some(when_val) = when {
             cmd.arg("--when");
             cmd.arg(when_val);
         }
-        cmd.output().ok();
+        if when == Some("cancel") {
+            SystemCtl::log(&format!("cancel scheduled {}", log_label));
+        } else {
+            SystemCtl::log(log_label);
+        }
+        Self::run_cmd(cmd);
     }
-    pub fn reboot() {
-        SystemCtl::log("reboot");
-        std::process::Command::new("systemctl").args(["reboot"]).output().ok();
+
+    fn run_cmd(mut cmd: std::process::Command) {
+        if std::env::var("DRY").unwrap_or("false".to_string()) == "false" {
+            cmd.output().ok();
+        }
+    }
+
+    fn systemctl_cmd() -> std::process::Command {
+        std::process::Command::new("systemctl")
     }
 
     fn log(command: &str) {
