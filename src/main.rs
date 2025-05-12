@@ -1,6 +1,8 @@
-use std::io::{Read as _, Write as _};
+use std::io::Write as _;
 
+mod request;
 mod systemctl;
+use request::Request;
 use systemctl::SystemCtl;
 
 const HTML: &str = include_str!("index.html");
@@ -9,6 +11,7 @@ const BINARY_PATH: &str = "/usr/local/bin/powe_rs";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn serve(ip: &str, port: u16) {
+    let no_content = "HTTP/1.1 204 NO CONTENT";
     let bind_addr = if ip.contains(":") {
         // IPv6
         format!("[{}]:{}", ip, port)
@@ -18,37 +21,23 @@ fn serve(ip: &str, port: u16) {
     };
     let listener = std::net::TcpListener::bind(&bind_addr).expect("Failed to bind address");
     println!("Listening on http://{}:{}", ip, port);
+
     for mut stream in listener.incoming().flatten() {
         std::thread::spawn(move || {
-            let mut buffer = [0; 1024];
-            let _ = stream.read(&mut buffer);
-            let request = String::from_utf8_lossy(&buffer);
+            let req = Request::from_stream(&mut stream.try_clone().expect("Failed to clone stream")).expect("Failed to read request");
 
-            let response = if request.contains("POST /poweroff") {
-                let when = extract_body(&request);
-                SystemCtl::poweroff(when.as_deref());
-                "HTTP/1.1 204 NO CONTENT".to_string()
-            } else if request.contains("POST /reboot") {
-                let when = extract_body(&request);
-                SystemCtl::reboot(when.as_deref());
-                "HTTP/1.1 204 NO CONTENT".to_string()
+            let response = if req.request.contains("POST /poweroff") {
+                SystemCtl::poweroff(req.body.as_deref());
+                no_content.to_string()
+            } else if req.request.contains("POST /reboot") {
+                SystemCtl::reboot(req.body.as_deref());
+                no_content.to_string()
             } else {
                 format!("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{}", HTML)
             };
-            let _ = stream.write(response.as_bytes());
+            _ = stream.write_all(response.as_bytes());
         });
     }
-}
-
-fn extract_body(request: &str) -> Option<String> {
-    if let Some(idx) = request.find("\r\n\r\n") {
-        let body = &request[idx + 4..];
-        let val = body.trim_matches(|c: char| c == '\0' || c.is_whitespace());
-        if !val.is_empty() {
-            return Some(val.to_string());
-        }
-    }
-    None
 }
 
 fn require_root_or_exit(cmd: &str) {
@@ -64,7 +53,7 @@ fn install_service(ip: &str, port: u16) {
     let sysctl = SystemCtl::install_service(SERVICE_NAME, BINARY_PATH, ip, port);
     sysctl.enable();
     sysctl.stop();
-    std::fs::copy(&std::env::current_exe().unwrap(), BINARY_PATH).expect("Failed to copy binary to /usr/local/bin");
+    std::fs::copy(std::env::current_exe().expect("Failed to get current executable"), BINARY_PATH).expect("Failed to copy binary to /usr/local/bin");
     sysctl.start();
     println!("Service installed and started on http://{}:{}", ip, port);
 }
