@@ -44,7 +44,7 @@ jobs:
         run: cross build --release --target aarch64-unknown-linux-gnu
       - name: Package Binaries
         run: |
-          mkdir -p dist
+          mkdir -p dist/x86_64 dist/aarch64
           cp target/x86_64-unknown-linux-gnu/release/powe_rs dist/x86_64/powe_rs
           cp target/aarch64-unknown-linux-gnu/release/powe_rs dist/aarch64/powe_rs
       - name: Upload Artifacts
